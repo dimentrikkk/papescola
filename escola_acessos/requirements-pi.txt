@@ -1,0 +1,17 @@
+# Raspberry Pi 4 (64-bit). O dlib compila-se no Pi: demora (20-60 min) e precisa de swap.
+#   sudo apt install -y build-essential cmake python3-dev libopenblas-dev liblapack-dev libjpeg-dev i2c-tools
+Flask>=3.0
+numpy>=1.24
+Pillow>=10.0
+gunicorn>=21.2
+opencv-python-headless>=4.8
+dlib>=19.24
+face_recognition>=1.3
+setuptools<81        # face_recognition_models ainda usa pkg_resources
+
+# --- Hardware ---
+gpiozero>=2.0
+rpi-lgpio>=0.6       # backend de GPIO para o Pi 4/5 (alternativa: apt install python3-lgpio)
+RPLCD>=1.3           # display LCD I2C (HD44780 + PCF8574)
+smbus2>=0.4
+# luma.oled>=3.13    # só se o seu display I2C for OLED (DISPLAY_TIPO=oled)

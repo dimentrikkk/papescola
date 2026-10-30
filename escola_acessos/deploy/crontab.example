@@ -1,0 +1,6 @@
+# crontab -e   (utilizador pi)
+# Os emails aos encarregados são enviados pelo próprio porteiro (se o SMTP estiver configurado).
+# Só é preciso o cron para a limpeza diária de dados (RGPD):
+30 3 * * *   cd /home/pi/escola_acessos && set -a && . ./.env && set +a && .venv/bin/python -m scripts.limpar_dados >> /tmp/limpeza.log 2>&1
+# Se NÃO usar o porteiro (só o site), envie os emails de 5 em 5 minutos:
+# */5 * * * *  cd /home/pi/escola_acessos && set -a && . ./.env && set +a && .venv/bin/python -m scripts.enviar_emails >> /tmp/emails.log 2>&1

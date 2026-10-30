@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Professores{% endblock %}
+{% block page_title %}Professores e administração{% endblock %}
+{% block page_subtitle %}Contas de utilizadores do staff{% endblock %}
+{% block content %}
+<form method="post" class="card form grid two-col">
+  {{ csrf_field() }}<input type="hidden" name="acao" value="criar">
+  <label>Nome <input name="nome" required maxlength="120"></label>
+  <label>Email <input type="email" name="email" required></label>
+  <label>Papel <select name="papel"><option value="professor">Professor</option><option value="admin">Administração</option></select></label>
+  <div class="full actions-row"><button class="btn primary"><i class="fa-solid fa-plus"></i> Criar utilizador</button></div>
+</form>
+<div class="card"><table class="data"><thead><tr><th>Nome</th><th>Email</th><th>Papel</th><th>Estado</th><th></th></tr></thead><tbody>
+  {% for u in rows %}
+  <tr><td>{{ u.nome }}</td><td>{{ u.email }}</td><td><span class="chip">{{ 'Administração' if u.papel == 'admin' else 'Professor' }}</span></td>
+    <td>{% if u.ativo %}<span class="badge in">Ativo</span>{% else %}<span class="badge out">Inativo</span>{% endif %}</td>
+    <td><div class="table-actions">
+      <form method="post" class="inline-form">{{ csrf_field() }}<input type="hidden" name="acao" value="reset"><input type="hidden" name="id" value="{{ u.id }}"><button class="btn ghost small" title="Repor password"><i class="fa-solid fa-key"></i></button></form>
+      {% if u.papel == 'professor' %}
+      <form method="post" class="inline-form">{{ csrf_field() }}<input type="hidden" name="acao" value="ativar"><input type="hidden" name="id" value="{{ u.id }}"><button class="btn ghost small" title="Ativar/desativar"><i class="fa-solid fa-power-off"></i></button></form>
+      <form method="post" class="inline-form" onsubmit="return confirm('Remover professor?')">{{ csrf_field() }}<input type="hidden" name="acao" value="apagar"><input type="hidden" name="id" value="{{ u.id }}"><button class="btn ghost danger small"><i class="fa-solid fa-trash"></i></button></form>
+      {% endif %}
+    </div></td></tr>
+  {% endfor %}
+</tbody></table></div>
+{% endblock %}

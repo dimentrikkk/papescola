@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="pt">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="csrf-token" content="{{ csrf_token() }}">
+  <meta name="theme-color" content="#008ad8">
+  <title>{% block title %}{{ escola_nome }}{% endblock %} · Profitecla</title>
+  <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='favicon.svg') }}">
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css', v=4) }}">
+  {% block head %}{% endblock %}
+</head>
+<body class="{% block body_class %}layout-app{% endblock %}">
+  {% block layout %}
+  <aside class="sidebar" id="sidebar">
+    <a class="brand" href="{{ url_for('index') }}">
+      <img src="{{ url_for('static', filename='logo-profitecla.svg') }}" alt="Profitecla — Escola Profissional">
+      <small>Acessos e assiduidade</small>
+    </a>
+    <nav class="nav">
+      {% block nav %}{% if current_user_type %}{% include "_nav_" ~ current_user_type ~ ".html" %}{% endif %}{% endblock %}
+    </nav>
+    <div class="sidebar-foot">
+      <div class="user-card">
+        {% if current_avatar %}
+          <img class="sc-avatar sc-avatar-img" src="{{ url_for('media.ficheiro', filename=current_avatar) }}" alt="">
+        {% else %}
+          <div class="sc-avatar">{{ (current_user_name or '?')[:1] | upper }}</div>
+        {% endif %}
+        <div class="user-info">
+          <strong>{{ current_user_name or '—' }}</strong>
+          <span>{{ {'admin': 'Administração', 'professor': 'Professor / Diretor de turma', 'aluno': 'Aluno'}.get(current_user_type, '') }}</span>
+        </div>
+      </div>
+      <a class="nav-logout" href="{{ url_for('auth.conta') }}"><i class="fa-solid fa-key"></i><span class="nav-label">Alterar password</span></a>
+      <a class="nav-logout" href="{{ url_for('auth.logout') }}"><i class="fa-solid fa-right-from-bracket"></i><span class="nav-label">Terminar sessão</span></a>
+    </div>
+  </aside>
+  <div class="scrim"></div>
+
+  <main class="main">
+    <header class="topbar">
+      <div class="topbar-title">
+        <button class="menu-btn" type="button" aria-label="Menu"><i class="fa-solid fa-bars"></i></button>
+        <div class="topbar-heading">
+          <h1>{% block page_title %}{% endblock %}</h1>
+          <p>{% block page_subtitle %}{{ escola_nome }}{% endblock %}</p>
+        </div>
+      </div>
+      <div class="topbar-actions">
+        {% block page_actions %}{% endblock %}
+        {% if current_user_type %}
+          <a class="bell" href="{{ url_for(current_user_type ~ '.notificacoes') }}" title="Notificações">
+            <i class="fa-solid fa-bell"></i>
+            {% if unread_notifs and unread_notifs > 0 %}<span class="bell-badge">{{ unread_notifs if unread_notifs < 100 else '99+' }}</span>{% endif %}
+          </a>
+        {% endif %}
+      </div>
+    </header>
+    <div class="flash-area">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for cat, msg in messages %}<div class="flash flash-{{ cat }}">{{ msg }}</div>{% endfor %}
+      {% endwith %}
+    </div>
+    <div class="content">{% block content %}{% endblock %}</div>
+  </main>
+  {% endblock %}
+  <script src="{{ url_for('static', filename='js/app.js', v=4) }}" defer></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

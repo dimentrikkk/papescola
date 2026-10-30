@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}Registar rosto{% endblock %}
+{% block page_title %}Registar rosto{% endblock %}
+{% block page_subtitle %}{{ aluno.nome_completo }} · nº {{ aluno.numero_processo }}{% endblock %}
+{% block page_actions %}<a class="btn ghost" href="{{ url_for('admin.alunos_edit', aid=aluno.id) }}"><i class="fa-solid fa-arrow-left"></i> Voltar</a>{% endblock %}
+{% block content %}
+{% if not aluno.consentimento_biometrico %}
+<div class="notice"><i class="fa-solid fa-ban"></i> Este aluno não tem consentimento biométrico registado. <a href="{{ url_for('admin.alunos_edit', aid=aluno.id) }}">Registar consentimento</a> primeiro.</div>
+{% else %}
+<div class="grid two-col">
+  <div class="card">
+    <header><h3><i class="fa-solid fa-camera"></i> Câmara do browser</h3></header>
+    <div class="cam-wrap"><video id="video" autoplay muted playsinline></video><canvas id="canvas" style="display:none"></canvas></div>
+    <div class="actions-row">
+      <button id="btnCapture" class="btn primary"><i class="fa-solid fa-circle"></i> Capturar amostra</button>
+      <button id="btnClear" class="btn danger ghost"><i class="fa-solid fa-trash"></i> Apagar amostras</button>
+    </div>
+    <p class="muted small">Tire 3 a 5 fotos com ligeiras variações de ângulo, boa luz e sem óculos escuros/boné.
+      <br><strong>Nota:</strong> os browsers só deixam usar a câmara em <code>localhost</code> ou HTTPS. Se estiver a aceder por IP da rede, use o carregamento de ficheiros ao lado.</p>
+  </div>
+  <div class="card">
+    <header><h3><i class="fa-solid fa-upload"></i> Ou carregar fotografias</h3></header>
+    <input type="file" id="ficheiros" accept="image/*" multiple>
+    <div class="actions-row"><button id="btnUpload" class="btn ghost"><i class="fa-solid fa-upload"></i> Enviar fotografias</button></div>
+    <div class="status" style="margin-top:14px"><span>Amostras registadas: <strong id="sampleCount">{{ amostras }}</strong></span>
+      <span class="muted small">Mínimo recomendado: 3 · máximo: {{ config.MAX_FACE_SAMPLES }}</span></div>
+    <div id="thumbs" class="thumbs"></div>
+    <div id="msg" class="msg"></div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}
+{% block scripts %}
+{% if aluno.consentimento_biometrico %}
+<script>
+const AID = {{ aluno.id }};
+const CSRF = document.querySelector('meta[name=csrf-token]').content;
+const $ = id => document.getElementById(id);
+const video = $('video'), canvas = $('canvas'), msg = $('msg'), count = $('sampleCount');
+
+navigator.mediaDevices?.getUserMedia({video:{width:640,height:480}})
+  .then(s => video.srcObject = s)
+  .catch(e => show('Sem acesso à câmara (' + e.message + '). Use o carregamento de fotografias.', 'error'));
+
+function show(text, type='success') {
+  msg.innerHTML = '<div class="flash flash-' + type + '"></div>';
+  msg.firstChild.textContent = text;
+}
+async function post(url, opts) {
+  const r = await fetch(url, {method:'POST', headers: Object.assign({'X-CSRFToken': CSRF}, opts.headers||{}), body: opts.body});
+  return r.json();
+}
+$('btnCapture').onclick = async () => {
+  if (!video.videoWidth) return;
+  canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+  canvas.getContext('2d').drawImage(video, 0, 0);
+  const url = canvas.toDataURL('image/jpeg', 0.9);
+  const d = await post(`/admin/alunos/${AID}/rosto/amostra`, {headers:{'Content-Type':'application/json'}, body: JSON.stringify({image: url})});
+  if (d.ok) { count.textContent = d.samples; const i = new Image(); i.src = url; $('thumbs').prepend(i); show('Amostra ' + d.samples + ' guardada.'); }
+  else show(d.error || 'Erro.', 'error');
+};
+$('btnUpload').onclick = async () => {
+  const fs = $('ficheiros').files; if (!fs.length) return;
+  const fd = new FormData(); for (const f of fs) fd.append('fotos', f);
+  const d = await post(`/admin/alunos/${AID}/rosto/amostra`, {body: fd});
+  if (d.ok) { count.textContent = d.samples; show('Amostras: ' + d.samples + (d.avisos?.length ? ' · ' + d.avisos.join(' ') : '')); }
+  else show(d.error || 'Erro.', 'error');
+};
+$('btnClear').onclick = async () => {
+  if (!confirm('Apagar todas as amostras deste aluno?')) return;
+  await post(`/admin/alunos/${AID}/rosto/apagar`, {});
+  count.textContent = '0'; $('thumbs').innerHTML = ''; show('Amostras apagadas.');
+};
+</script>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Alterar password{% endblock %}
+{% block page_title %}Alterar password{% endblock %}
+{% block page_subtitle %}{% if obrigatorio %}Por segurança, defina uma nova password antes de continuar{% else %}Mantenha a sua conta segura{% endif %}{% endblock %}
+{% block nav %}{% if not obrigatorio %}{{ super() }}{% endif %}{% endblock %}
+{% block content %}
+<form method="post" class="card form" style="max-width:520px">
+  {{ csrf_field() }}
+  <label>Password atual <input type="password" name="atual" autocomplete="current-password" required></label>
+  <label>Nova password <input type="password" name="nova" autocomplete="new-password" minlength="8" required></label>
+  <label>Confirmar nova password <input type="password" name="confirma" autocomplete="new-password" minlength="8" required></label>
+  <p class="muted small">Mínimo 8 caracteres, com letras e números.</p>
+  <div class="actions-row"><button class="btn primary"><i class="fa-solid fa-key"></i> Guardar</button></div>
+</form>
+{% endblock %}

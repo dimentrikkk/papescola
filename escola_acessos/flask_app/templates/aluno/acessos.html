@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}Entradas e saídas{% endblock %}
+{% block page_title %}As minhas entradas e saídas{% endblock %}
+{% block content %}
+<div class="card"><table class="data compact"><thead><tr><th>Data</th><th>Hora</th><th>Tipo</th></tr></thead><tbody>
+  {% for r in rows %}<tr><td>{{ r.timestamp[8:10] }}/{{ r.timestamp[5:7] }}/{{ r.timestamp[:4] }}</td><td>{{ r.timestamp[11:16] }}</td>
+    <td>{% if r.tipo == 'entrada' %}<span class="badge in"><i class="fa-solid fa-arrow-right-to-bracket"></i> Entrada</span>{% else %}<span class="badge out"><i class="fa-solid fa-arrow-right-from-bracket"></i> Saída</span>{% endif %}</td></tr>
+  {% else %}<tr><td colspan="3" class="muted center" style="padding:20px">Sem registos.</td></tr>{% endfor %}
+</tbody></table></div>
+{% endblock %}

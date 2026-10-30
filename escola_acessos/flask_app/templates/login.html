@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Iniciar sessão{% endblock %}
+{% block body_class %}layout-auth{% endblock %}
+{% block layout %}
+<div class="auth-wrap">
+  <section class="auth-hero">
+    <span class="tri t1"></span><span class="tri t2"></span><span class="tri t3"></span>
+    <div class="hero-brand"><img class="auth-logo" src="{{ url_for('static', filename='logo-profitecla.svg') }}" alt="Profitecla — Escola Profissional"></div>
+    <h1>Acessos e<br><span>assiduidade</span></h1>
+    <p>Entradas e saídas com reconhecimento facial, presenças, atrasos e faltas — e o encarregado de educação sempre informado.</p>
+    <ul class="hero-list">
+      <li><i class="fa-solid fa-camera"></i> Registo à entrada da escola, em segundos</li>
+      <li><i class="fa-solid fa-envelope-circle-check"></i> Aviso automático ao encarregado de educação</li>
+      <li><i class="fa-solid fa-user-shield"></i> Biometria só com consentimento</li>
+    </ul>
+  </section>
+  <section class="auth-card">
+    <h2>Bem-vindo</h2>
+    <p>Inicie sessão com o seu email da escola.</p>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for cat, msg in messages %}<div class="flash flash-{{ cat }}">{{ msg }}</div>{% endfor %}
+    {% endwith %}
+    <form method="post" class="form">
+      {{ csrf_field() }}
+      <label>Email <input type="email" name="email" autocomplete="username" placeholder="o.seu.nome@profitecla.pt" required autofocus></label>
+      <label>Password <input type="password" name="password" autocomplete="current-password" required></label>
+      <button class="btn primary block" type="submit"><i class="fa-solid fa-arrow-right-to-bracket"></i> Entrar</button>
+    </form>
+    <p class="rodape">{{ escola_nome }}</p>
+  </section>
+</div>
+{% endblock %}

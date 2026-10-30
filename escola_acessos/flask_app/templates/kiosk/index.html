@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Kiosk{% endblock %}
+{% block body_class %}layout-kiosk{% endblock %}
+{% block layout %}
+<div class="kiosk-top"><img src="{{ url_for('static', filename='logo-profitecla.svg') }}" alt="Profitecla"><span id="clock"></span></div>
+<main class="kiosk-main">
+  <div class="kiosk-cam">
+    <video id="video" autoplay muted playsinline></video><canvas id="canvas" style="display:none"></canvas>
+    <div class="scan-frame" id="frame"></div>
+  </div>
+  <div id="status" class="kiosk-status">A iniciar câmara…</div>
+</main>
+<p class="center" style="color:#9cc3e4;font-size:.8rem;padding:0 20px 18px">Modo de ensaio no browser. Na portaria, o Raspberry Pi usa o programa “porteiro” (sem browser). Este ecrã não abre a porta.</p>
+{% endblock %}
+{% block scripts %}
+<script>
+const CSRF = document.querySelector('meta[name=csrf-token]').content;
+const video = document.getElementById('video'), canvas = document.getElementById('canvas'), st = document.getElementById('status'), frame = document.getElementById('frame');
+let busy = false;
+setInterval(() => document.getElementById('clock').textContent = new Date().toLocaleTimeString('pt-PT', {hour:'2-digit', minute:'2-digit'}), 1000);
+navigator.mediaDevices?.getUserMedia({video:{width:640,height:480}}).then(s => { video.srcObject = s; st.textContent = 'Aproxime-se da câmara'; })
+  .catch(e => st.textContent = 'Sem acesso à câmara: ' + e.message);
+const pausa = ms => new Promise(r => setTimeout(r, ms));
+async function tick() {
+  if (busy || !video.videoWidth) return;
+  busy = true;
+  try {
+    canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+    canvas.getContext('2d').drawImage(video, 0, 0);
+    const r = await fetch('/kiosk/reconhecer', {method:'POST', headers:{'Content-Type':'application/json','X-CSRFToken':CSRF},
+      body: JSON.stringify({image: canvas.toDataURL('image/jpeg', 0.8)})});
+    const d = await r.json();
+    if (d.estado !== 'sem_rosto') {
+      st.className = 'kiosk-status ' + (d.ok ? 'ok' : 'bad'); frame.className = 'scan-frame ' + (d.ok ? 'ok' : 'bad');
+      st.textContent = (d.aluno_nome ? d.aluno_nome + ' — ' : '') + d.mensagem;
+      await pausa(3200);
+      st.className = 'kiosk-status'; frame.className = 'scan-frame'; st.textContent = 'Aproxime-se da câmara';
+    }
+  } catch (e) { st.textContent = 'Erro de ligação ao servidor.'; }
+  busy = false;
+}
+setInterval(tick, 1200);
+</script>
+{% endblock %}

@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Turmas e cursos{% endblock %}
+{% block page_title %}Turmas e cursos{% endblock %}
+{% block page_subtitle %}Estrutura da escola e diretores de turma{% endblock %}
+{% block content %}
+<div class="grid two-col">
+  <form method="post" class="card form">
+    <header><h3><i class="fa-solid fa-graduation-cap"></i> Novo curso</h3></header>
+    {{ csrf_field() }}<input type="hidden" name="acao" value="criar_curso">
+    <label>Nome <input name="nome" required maxlength="80" placeholder="Técnico de Gestão e Programação de Sistemas Informáticos"></label>
+    <label>Descrição <input name="descricao" maxlength="200"></label>
+    <div class="actions-row"><button class="btn primary"><i class="fa-solid fa-plus"></i> Criar curso</button></div>
+  </form>
+  <form method="post" class="card form">
+    <header><h3><i class="fa-solid fa-people-group"></i> Nova turma</h3></header>
+    {{ csrf_field() }}<input type="hidden" name="acao" value="criar_turma">
+    <label>Nome <input name="nome" required maxlength="40" placeholder="PGI24"></label>
+    <label>Curso <select name="curso_id"><option value="">—</option>{% for c in cursos %}<option value="{{ c.id }}">{{ c.nome }}</option>{% endfor %}</select></label>
+    <label>Ano letivo <input name="ano_letivo" maxlength="20" placeholder="2026/2027"></label>
+    <label>Diretor de turma <select name="diretor_turma_id"><option value="">—</option>{% for p in professores %}<option value="{{ p.id }}">{{ p.nome }}</option>{% endfor %}</select></label>
+    <div class="actions-row"><button class="btn primary"><i class="fa-solid fa-plus"></i> Criar turma</button></div>
+  </form>
+</div>
+
+<div class="card"><header><h3><i class="fa-solid fa-people-group"></i> Turmas</h3></header><div class="table-wrap"><table class="data">
+  <thead><tr><th>Turma</th><th>Curso</th><th>Ano letivo</th><th>Diretor de turma</th><th>Alunos</th><th>Horário</th><th></th></tr></thead><tbody>
+  {% for t in turmas %}
+  <tr>
+    <td><strong>{{ t.nome }}</strong></td>
+    <td><select form="f{{ t.id }}" name="curso_id" class="compact"><option value="">—</option>{% for c in cursos %}<option value="{{ c.id }}" {{ 'selected' if t.curso_id == c.id }}>{{ c.nome[:38] }}</option>{% endfor %}</select></td>
+    <td><input form="f{{ t.id }}" name="ano_letivo" value="{{ t.ano_letivo or '' }}" class="compact" style="width:110px"></td>
+    <td><select form="f{{ t.id }}" name="diretor_turma_id" class="compact"><option value="">—</option>{% for p in professores %}<option value="{{ p.id }}" {{ 'selected' if t.diretor_turma_id == p.id }}>{{ p.nome }}</option>{% endfor %}</select></td>
+    <td>{{ t.n_alunos }}</td>
+    <td>{% if t.n_dias %}<a href="{{ url_for('admin.horarios', turma_id=t.id) }}"><span class="badge in">{{ t.n_dias }} dias</span></a>{% else %}<a href="{{ url_for('admin.horarios', turma_id=t.id) }}"><span class="badge warn">Definir</span></a>{% endif %}</td>
+    <td><div class="table-actions">
+      <button form="f{{ t.id }}" class="btn ghost small" title="Guardar"><i class="fa-solid fa-floppy-disk"></i></button>
+      <button form="d{{ t.id }}" class="btn ghost danger small" title="Remover"><i class="fa-solid fa-trash"></i></button>
+    </div></td>
+  </tr>
+  {% else %}<tr><td colspan="7" class="muted center" style="padding:24px">Sem turmas.</td></tr>{% endfor %}
+</tbody></table></div>
+{% for t in turmas %}
+<form method="post" id="f{{ t.id }}">{{ csrf_field() }}<input type="hidden" name="acao" value="atualizar_turma"><input type="hidden" name="id" value="{{ t.id }}"></form>
+<form method="post" id="d{{ t.id }}" onsubmit="return confirm('Remover a turma {{ t.nome }}? O horário é apagado e os alunos ficam sem turma.')">{{ csrf_field() }}<input type="hidden" name="acao" value="apagar_turma"><input type="hidden" name="id" value="{{ t.id }}"></form>
+{% endfor %}
+</div>
+
+<div class="card"><header><h3><i class="fa-solid fa-graduation-cap"></i> Cursos</h3></header><table class="data"><thead><tr><th>Curso</th><th>Turmas</th><th></th></tr></thead><tbody>
+  {% for c in cursos %}<tr><td>{{ c.nome }}<br><small class="muted">{{ c.descricao or '' }}</small></td><td>{{ c.n_turmas }}</td>
+    <td><form method="post" class="inline-form" onsubmit="return confirm('Remover curso?')">{{ csrf_field() }}<input type="hidden" name="acao" value="apagar_curso"><input type="hidden" name="id" value="{{ c.id }}"><button class="btn ghost danger small"><i class="fa-solid fa-trash"></i></button></form></td></tr>
+  {% else %}<tr><td colspan="3" class="muted center">Sem cursos.</td></tr>{% endfor %}
+</tbody></table></div>
+{% endblock %}

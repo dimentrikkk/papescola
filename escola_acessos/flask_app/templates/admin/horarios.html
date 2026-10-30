@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Horários{% endblock %}
+{% block page_title %}Horários de entrada e saída{% endblock %}
+{% block page_subtitle %}Só a hora da 1.ª aula e a hora de saída — o horário das disciplinas está na outra aplicação{% endblock %}
+{% block content %}
+<div class="notice info"><i class="fa-solid fa-circle-info"></i><div>O aluno só regista <strong>à entrada</strong> (1.ª hora) e <strong>à saída</strong> da escola. Com estas horas o sistema marca <strong>presença, atraso ou falta</strong> e avisa o encarregado de educação.
+  Tolerância de atraso: <strong>{{ config.TOLERANCIA_ATRASO_MIN }} min</strong> · falta se não entrar até <strong>{{ config.FALTA_APOS_MIN }} min</strong> depois da hora de entrada.</div></div>
+
+{% if not turmas %}
+<div class="card"><p class="muted center" style="padding:20px">Crie primeiro uma turma em <a href="{{ url_for('admin.turmas') }}">Turmas e cursos</a>.</p></div>
+{% else %}
+<form method="get" class="filters card"><label class="muted small">Turma</label>
+  <select name="turma_id" onchange="this.form.submit()">{% for t in turmas %}<option value="{{ t.id }}" {{ 'selected' if turma_id == t.id }}>{{ t.nome }}</option>{% endfor %}</select></form>
+
+<form method="post" class="card">
+  {{ csrf_field() }}<input type="hidden" name="turma_id" value="{{ turma_id }}">
+  <header><h3><i class="fa-solid fa-clock"></i> Horário da turma</h3>
+    <button type="button" id="copiarSegunda" class="btn ghost small"><i class="fa-solid fa-copy"></i> Copiar segunda a todos os dias úteis</button></header>
+  {% for d in range(6) %}
+  {% set h = atual.get(d) %}
+  <div class="dia-edit {{ '' if h else 'off' }}">
+    <label class="check"><input type="checkbox" name="ativo_{{ d }}" {{ 'checked' if h }}> <strong>{{ dias[d] }}</strong></label>
+    <label class="field">Entrada <input type="time" name="entrada_{{ d }}" value="{{ h.hora_entrada if h else '' }}"></label>
+    <label class="field">Saída <input type="time" name="saida_{{ d }}" value="{{ h.hora_saida if h else '' }}"></label>
+  </div>
+  {% endfor %}
+  <label class="check" style="margin-top:12px"><input type="checkbox" name="aplicar_todas"> Aplicar este horário também a <strong>todas as outras turmas</strong> (substitui o que lá estiver)</label>
+  <div class="actions-row"><button class="btn primary"><i class="fa-solid fa-floppy-disk"></i> Guardar horário</button></div>
+</form>
+
+<div class="card"><header><h3><i class="fa-solid fa-table"></i> Todas as turmas</h3></header><div class="table-wrap"><table class="data compact">
+  <thead><tr><th>Turma</th>{% for d in range(5) %}<th>{{ dias[d][:3] }}</th>{% endfor %}</tr></thead><tbody>
+  {% for t in turmas %}<tr><td><a href="{{ url_for('admin.horarios', turma_id=t.id) }}"><strong>{{ t.nome }}</strong></a></td>
+    {% for d in range(5) %}{% set h = todos.get(t.id, {}).get(d) %}<td>{% if h %}{{ h.hora_entrada }}–{{ h.hora_saida }}{% else %}<span class="muted">—</span>{% endif %}</td>{% endfor %}</tr>{% endfor %}
+</tbody></table></div></div>
+{% endif %}
+{% endblock %}

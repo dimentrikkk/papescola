@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% from "_macros.html" import estado_badge %}
+{% block title %}Turma {{ turma.nome }}{% endblock %}
+{% block page_title %}Turma {{ turma.nome }}{% endblock %}
+{% block page_subtitle %}{{ dia_nome }}, {{ data | data_pt }}{% if hor %} · entrada {{ hor.hora_entrada }} · saída {{ hor.hora_saida }}{% endif %}{% endblock %}
+{% block page_actions %}<a class="btn ghost" href="{{ url_for('professor.dashboard') }}"><i class="fa-solid fa-arrow-left"></i> Voltar</a>{% endblock %}
+{% block content %}
+<form method="get" class="filters card"><label class="muted small">Dia</label>
+  <input type="date" name="data" value="{{ data }}" onchange="this.form.submit()"></form>
+{% if not hor %}<div class="notice"><i class="fa-solid fa-calendar-xmark"></i><div>A turma não tem aulas neste dia.</div></div>{% endif %}
+
+<div class="card"><header><h3><i class="fa-solid fa-list-check"></i> Presenças do dia</h3></header>
+  <p class="muted small">É calculado automaticamente pela entrada e saída na escola. Se algo estiver errado (ex.: aluno veio mas não registou), pode corrigir — a sua marcação tem prioridade.</p>
+  <div class="table-wrap"><table class="data">
+    <thead><tr><th>Aluno</th><th>Estado</th><th>Entrada</th><th>Saída</th>{% if not futuro %}<th>Corrigir</th>{% endif %}</tr></thead><tbody>
+    {% for l in linhas %}
+    <tr><td><div class="pessoa">{% if l.foto_perfil %}<img class="row-avatar" src="{{ url_for('media.ficheiro', filename=l.foto_perfil) }}" alt="">{% else %}<div class="presence-av">{{ l.nome_completo[:1] | upper }}</div>{% endif %}
+        <div>{{ l.nome_completo }}<br><small class="muted">nº {{ l.numero_processo }}</small></div></div></td>
+      <td>{{ estado_badge(l.estado, l.atraso_minutos) }}{% if l.origem == 'manual' %}<br><small class="muted">marcado manualmente</small>{% endif %}</td>
+      <td>{{ l.hora_entrada or '—' }}</td><td>{{ l.hora_saida or '—' }}</td>
+      {% if not futuro %}<td><form method="post" class="table-actions">{{ csrf_field() }}<input type="hidden" name="data" value="{{ data }}"><input type="hidden" name="aluno_id" value="{{ l.aluno_id }}">
+        <select name="estado" class="compact" required><option value="" selected disabled>Corrigir para…</option><option value="presente">Presente</option><option value="atraso">Atraso</option><option value="falta">Falta</option><option value="falta_justificada">Justificada</option><option value="auto">Automático</option></select>
+        <input type="number" name="atraso" min="0" max="600" placeholder="min" class="compact" style="width:68px" title="Minutos de atraso">
+        <button class="btn ghost small"><i class="fa-solid fa-check"></i></button></form></td>{% endif %}</tr>
+    {% else %}<tr><td colspan="5" class="muted center" style="padding:24px">Sem alunos.</td></tr>{% endfor %}
+  </tbody></table></div></div>
+
+<div class="card"><header><h3><i class="fa-solid fa-chart-simple"></i> Resumo dos últimos 30 dias</h3></header><div class="table-wrap"><table class="data compact">
+  <thead><tr><th>Aluno</th><th>Presenças</th><th>Atrasos</th><th>Minutos de atraso</th><th>Faltas</th><th>Justificadas</th></tr></thead><tbody>
+  {% for r in resumo %}<tr><td>{{ r.nome_completo }}</td><td>{{ r.presentes }}</td><td>{% if r.atrasos %}<span class="badge warn">{{ r.atrasos }}</span>{% else %}0{% endif %}</td><td>{{ r.min_atraso }}</td>
+    <td>{% if r.faltas %}<span class="badge out">{{ r.faltas }}</span>{% else %}0{% endif %}</td><td>{{ r.justificadas }}</td></tr>{% endfor %}
+</tbody></table></div></div>
+{% endblock %}

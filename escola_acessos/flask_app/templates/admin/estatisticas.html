@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Estatísticas{% endblock %}
+{% block page_title %}Estatísticas{% endblock %}
+{% block page_subtitle %}Assiduidade, atrasos e picos de chegada — últimos 30 dias{% endblock %}
+{% block page_actions %}<a class="btn ghost" href="{{ url_for('admin.exportar_presencas') }}"><i class="fa-solid fa-file-csv"></i> Exportar mês (CSV)</a>{% endblock %}
+{% block content %}
+<div class="grid two-col">
+  <div class="card"><header><h3><i class="fa-solid fa-chart-area"></i> Alunos que entraram por dia</h3></header><canvas id="c1" height="140"></canvas></div>
+  <div class="card"><header><h3><i class="fa-solid fa-people-group"></i> Atrasos e faltas por turma</h3></header>
+    {% if ocorrencias %}<canvas id="c2" height="140"></canvas>{% else %}<p class="muted center" style="padding:30px">Sem dados.</p>{% endif %}</div>
+  <div class="card"><header><h3><i class="fa-solid fa-hourglass-half"></i> A que horas chegam os alunos</h3></header>
+    {% if chegadas %}<canvas id="c3" height="140"></canvas>{% else %}<p class="muted center" style="padding:30px">Sem dados.</p>{% endif %}</div>
+  <div class="card"><header><h3><i class="fa-solid fa-ranking-star"></i> Mais atrasos</h3></header>
+    <table class="data compact"><thead><tr><th>Aluno</th><th>Turma</th><th>Atrasos</th><th>Minutos</th></tr></thead><tbody>
+    {% for a in top_atrasos %}<tr><td><a href="{{ url_for('admin.alunos_edit', aid=a.id) }}">{{ a.nome_completo }}</a></td><td>{{ a.turma or '—' }}</td><td><span class="badge warn">{{ a.n }}</span></td><td>{{ a.minutos }}</td></tr>
+    {% else %}<tr><td colspan="4" class="muted center">Sem dados.</td></tr>{% endfor %}</tbody></table></div>
+</div>
+<div class="card"><header><h3><i class="fa-solid fa-user-slash"></i> Mais faltas injustificadas</h3></header>
+  <table class="data"><thead><tr><th>Aluno</th><th>Turma</th><th>Faltas</th></tr></thead><tbody>
+  {% for a in top_faltas %}<tr><td><a href="{{ url_for('admin.alunos_edit', aid=a.id) }}">{{ a.nome_completo }}</a></td><td>{{ a.turma or '—' }}</td><td><span class="badge out">{{ a.n }}</span></td></tr>
+  {% else %}<tr><td colspan="3" class="muted center">Sem faltas. 🎉</td></tr>{% endfor %}</tbody></table></div>
+{% endblock %}
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+Chart.defaults.font.family = 'Inter, "Segoe UI", system-ui, sans-serif'; Chart.defaults.color = '#6a86a1';
+const grade = {y:{beginAtZero:true, ticks:{precision:0}, grid:{color:'#edf3f9'}}, x:{grid:{display:false}}};
+const ent = {{ entradas | tojson }};
+new Chart(document.getElementById('c1'), {type:'line', data:{labels: ent.map(e => e.data.slice(8) + '/' + e.data.slice(5,7)), datasets:[{data: ent.map(e => e.alunos), borderColor:'#008ad8', backgroundColor:'rgba(0,138,216,.14)', fill:true, tension:.35, pointRadius:3}]}, options:{plugins:{legend:{display:false}}, scales:grade}});
+{% if ocorrencias %}const oc = {{ ocorrencias | tojson }};
+new Chart(document.getElementById('c2'), {type:'bar', data:{labels: oc.map(o => o.turma), datasets:[{label:'Atrasos', data: oc.map(o => o.atrasos), backgroundColor:'#f5a524', borderRadius:6},{label:'Faltas', data: oc.map(o => o.faltas), backgroundColor:'#dc2f48', borderRadius:6}]}, options:{plugins:{legend:{position:'bottom'}}, scales:grade}});{% endif %}
+{% if chegadas %}const ch = {{ chegadas | tojson }};
+new Chart(document.getElementById('c3'), {type:'bar', data:{labels: ch.map(c => c.hora), datasets:[{data: ch.map(c => c.c), backgroundColor:'#3c9fe0', borderRadius:6}]}, options:{plugins:{legend:{display:false}}, scales:grade}});{% endif %}
+</script>
+{% endblock %}

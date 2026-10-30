@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% from "_macros.html" import estado_badge %}
+{% block title %}Assiduidade{% endblock %}
+{% block page_title %}Assiduidade{% endblock %}
+{% block page_subtitle %}{{ mes_nome }} de {{ ano }}{% endblock %}
+{% block content %}
+<div class="estado-row">
+  <div class="estado-pill ep-presente"><strong data-count="{{ cont.presente }}">0</strong><span>Presenças</span></div>
+  <div class="estado-pill ep-atraso"><strong data-count="{{ cont.atraso }}">0</strong><span>Atrasos</span></div>
+  <div class="estado-pill ep-falta"><strong data-count="{{ cont.falta }}">0</strong><span>Faltas</span></div>
+  <div class="estado-pill ep-falta_justificada"><strong data-count="{{ cont.falta_justificada }}">0</strong><span>Justificadas</span></div>
+</div>
+<div class="card">
+  <header><h3><i class="fa-solid fa-calendar-days"></i> {{ mes_nome }} {{ ano }}</h3>
+    <div class="mes-nav"><a class="btn ghost small" href="{{ url_for('aluno.assiduidade', mes=ant) }}"><i class="fa-solid fa-chevron-left"></i></a>
+      {% if seg %}<a class="btn ghost small" href="{{ url_for('aluno.assiduidade', mes=seg) }}"><i class="fa-solid fa-chevron-right"></i></a>{% endif %}</div></header>
+  <div class="cal">
+    {% for n in ['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'] %}<div class="cab">{{ n }}</div>{% endfor %}
+    {% for semana in semanas %}{% for d in semana %}
+      {% set p = dados.get(d.isoformat()) %}
+      <div class="dia {{ 'fora' if d.month != mes }} {{ 'c-' ~ p.estado if p }} {{ 'livre' if not p and d.weekday() not in hor }} {{ 'hoje' if d == hoje }}"
+           style="animation-delay: {{ (loop.index0 * 7 + loop.index) * 12 }}ms"
+           title="{% if p %}{{ rotulos[p.estado] }}{% if p.hora_entrada %} · entrada {{ p.hora_entrada }}{% endif %}{% endif %}">
+        <span>{{ d.day }}</span>
+        {% if p %}<small>{{ p.hora_entrada or rotulos[p.estado][:3] }}</small>{% endif %}
+      </div>
+    {% endfor %}{% endfor %}
+  </div>
+  <div class="legenda" style="margin-top:16px">
+    <span><i style="background:var(--ok-bg)"></i>Presente</span><span><i style="background:var(--warn-bg)"></i>Atraso</span>
+    <span><i style="background:var(--bad-bg)"></i>Falta</span><span><i style="background:var(--info-bg)"></i>Falta justificada</span>
+  </div>
+</div>
+<div class="card"><header><h3><i class="fa-solid fa-triangle-exclamation"></i> Atrasos e faltas deste mês</h3></header>
+  <div class="table-wrap"><table class="data compact"><thead><tr><th>Dia</th><th>Estado</th><th>Entrada</th><th>Nota</th></tr></thead><tbody>
+  {% for p in detalhe %}<tr><td>{{ p.data[8:] }}/{{ p.data[5:7] }}</td><td>{{ estado_badge(p.estado, p.atraso_minutos) }}</td><td>{{ p.hora_entrada or '—' }}</td><td class="muted">{{ p.nota or '' }}</td></tr>
+  {% else %}<tr><td colspan="4" class="muted center" style="padding:20px">Sem atrasos nem faltas neste mês. 👏</td></tr>{% endfor %}
+  </tbody></table></div>
+  <p class="muted small" style="margin-top:12px">Se uma falta teve motivo válido, peça a <a href="{{ url_for('aluno.justificacoes') }}">justificação</a>.</p></div>
+{% endblock %}

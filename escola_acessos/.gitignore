@@ -1,0 +1,13 @@
+# Dados pessoais e biométricos: NUNCA vão para o Git
+data/*
+!data/.gitkeep
+*.db
+*.db-wal
+*.db-shm
+.env
+teste_camara.jpg
+
+__pycache__/
+*.pyc
+.venv/
+venv/

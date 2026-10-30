@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% from "_macros.html" import estado_badge %}
+{% block title %}Presenças e faltas{% endblock %}
+{% block page_title %}Presenças e faltas{% endblock %}
+{% block page_subtitle %}{{ dia_nome }}, {{ data | data_pt }}{% if hor %} · entrada {{ hor.hora_entrada }} · saída {{ hor.hora_saida }}{% endif %}{% endblock %}
+{% block page_actions %}<a class="btn ghost" href="{{ url_for('admin.exportar_presencas', de=data, ate=data) }}"><i class="fa-solid fa-file-csv"></i> CSV do dia</a>{% endblock %}
+{% block content %}
+<form method="get" class="filters card">
+  <input type="date" name="data" value="{{ data }}" onchange="this.form.submit()">
+  <select name="turma_id" onchange="this.form.submit()">{% for t in turmas %}<option value="{{ t.id }}" {{ 'selected' if turma_id == t.id }}>{{ t.nome }}</option>{% endfor %}</select>
+</form>
+{% if turma_id and not hor %}<div class="notice"><i class="fa-solid fa-calendar-xmark"></i><div>Esta turma não tem aulas neste dia da semana. <a href="{{ url_for('admin.horarios', turma_id=turma_id) }}">Ver horário</a></div></div>{% endif %}
+
+<div class="card">
+  <header><h3><i class="fa-solid fa-clipboard-user"></i> Alunos da turma</h3>
+    <form method="post" class="inline-form">{{ csrf_field() }}<input type="hidden" name="data" value="{{ data }}"><input type="hidden" name="turma_id" value="{{ turma_id }}">
+      <button class="btn ghost small"><i class="fa-solid fa-rotate"></i> Recalcular agora</button></form></header>
+  <p class="muted small">Calculado automaticamente a partir da <strong>1.ª entrada</strong> e da <strong>última saída</strong>. Pode corrigir à mão — a sua marcação tem prioridade.</p>
+  <div class="table-wrap"><table class="data">
+    <thead><tr><th>Aluno</th><th>Estado</th><th>Entrada</th><th>Saída</th><th>Corrigir</th></tr></thead><tbody>
+    {% for l in linhas %}
+    <tr>
+      <td><div class="pessoa">{% if l.foto_perfil %}<img class="row-avatar" src="{{ url_for('media.ficheiro', filename=l.foto_perfil) }}" alt="">{% else %}<div class="presence-av">{{ l.nome_completo[:1] | upper }}</div>{% endif %}
+        <div>{{ l.nome_completo }}<br><small class="muted">nº {{ l.numero_processo }}{% if not l.encarregado_email %} · <span style="color:var(--warn)">sem email EE</span>{% endif %}</small></div></div></td>
+      <td>{{ estado_badge(l.estado, l.atraso_minutos) }}{% if l.origem == 'manual' %}<br><small class="muted">marcado manualmente</small>{% endif %}{% if l.nota %}<br><small class="muted">{{ l.nota }}</small>{% endif %}</td>
+      <td>{{ l.hora_entrada or '—' }}</td>
+      <td>{{ l.hora_saida or '—' }}{% if l.saida_antecipada_min %}<br><small class="muted">{{ l.saida_antecipada_min }} min antes</small>{% endif %}</td>
+      <td><form method="post" action="{{ url_for('admin.presencas_definir') }}" class="table-actions">
+        {{ csrf_field() }}<input type="hidden" name="data" value="{{ data }}"><input type="hidden" name="turma_id" value="{{ turma_id }}"><input type="hidden" name="aluno_id" value="{{ l.aluno_id }}">
+        <select name="estado" class="compact" required><option value="" selected disabled>Corrigir para…</option><option value="presente">Presente</option><option value="atraso">Atraso</option><option value="falta">Falta</option><option value="falta_justificada">Justificada</option><option value="auto">Automático</option></select>
+        <input type="number" name="atraso" min="0" max="600" placeholder="min" class="compact" style="width:68px" title="Minutos de atraso (só para Atraso)">
+        <button class="btn ghost small" title="Guardar"><i class="fa-solid fa-check"></i></button></form></td>
+    </tr>
+    {% else %}<tr><td colspan="5" class="muted center" style="padding:24px">Sem alunos nesta turma.</td></tr>{% endfor %}
+  </tbody></table></div>
+</div>
+{% endblock %}

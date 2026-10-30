@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Emails a encarregados{% endblock %}
+{% block page_title %}Emails aos encarregados de educação{% endblock %}
+{% block page_subtitle %}Avisos de atrasos e de limite de faltas{% endblock %}
+{% block content %}
+<form method="post" class="card" style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+  {{ csrf_field() }}
+  <button class="btn primary"><i class="fa-solid fa-paper-plane"></i> Enviar pendentes agora</button>
+  <button class="btn ghost" name="acao" value="reenviar"><i class="fa-solid fa-rotate-right"></i> Repor erros na fila</button>
+  <span class="muted small">{% if config.SMTP_HOST %}SMTP configurado ({{ config.SMTP_HOST }}).{% else %}SMTP não configurado: os emails ficam guardados na fila (ver .env.example).{% endif %}</span>
+</form>
+<div class="card"><div class="table-wrap"><table class="data compact">
+  <thead><tr><th>Criado</th><th>Para</th><th>Assunto</th><th>Estado</th></tr></thead><tbody>
+  {% for m in rows %}
+  <tr><td>{{ m.created_at }}</td><td>{{ m.destinatario }}</td><td>{{ m.assunto }}</td>
+    <td>{% if m.estado == 'enviado' %}<span class="badge in">Enviado</span>{% elif m.estado == 'erro' %}<span class="badge out" title="{{ m.erro }}">Erro</span>{% else %}<span class="badge warn">Pendente</span>{% endif %}</td></tr>
+  {% else %}<tr><td colspan="4" class="muted center" style="padding:24px">Sem emails.</td></tr>{% endfor %}
+</tbody></table></div></div>
+{% endblock %}

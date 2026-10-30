@@ -1,0 +1,2 @@
+{% set ep = request.endpoint or '' %}
+<a href="{{ url_for('professor.dashboard') }}" class="{{ 'active' if ep in ('professor.dashboard', 'professor.turma') }}"><i class="fa-solid fa-people-group"></i><span class="nav-label">As minhas turmas</span></a>

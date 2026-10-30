@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% from "_macros.html" import estado_badge %}
+{% block title %}Início{% endblock %}
+{% block page_title %}Olá, {{ al.nome_completo.split(' ')[0] }} 👋{% endblock %}
+{% block page_subtitle %}Turma {{ al.turma or '—' }} · nº {{ al.numero_processo }}{% endblock %}
+{% block content %}
+<div class="grid kpi">
+  <div class="kpi-card {{ 'kc-green' if ultimo and ultimo.tipo == 'entrada' else 'kc-blue' }}"><span class="kpi-label">Hoje</span>
+    <strong style="font-size:1.45rem">{% if ultimo %}{{ 'Dentro da escola' if ultimo.tipo == 'entrada' else 'Já saiu' }}{% else %}Sem registo{% endif %}</strong>
+    <small style="opacity:.9">{% if ultimo %}às {{ ultimo.timestamp[11:16] }}{% elif hor_hoje %}Entrada prevista às {{ hor_hoje.hora_entrada }}{% else %}Hoje não tem aulas{% endif %}</small><i class="fa-solid fa-door-open kpi-icon"></i></div>
+  <div class="kpi-card kc-sky"><span class="kpi-label">Presenças este mês</span><strong data-count="{{ mes.presente + mes.atraso }}">0</strong><i class="fa-solid fa-calendar-check kpi-icon"></i></div>
+  <div class="kpi-card kc-amber"><span class="kpi-label">Atrasos este mês</span><strong data-count="{{ mes.atraso }}">0</strong><i class="fa-solid fa-clock kpi-icon"></i></div>
+  <div class="kpi-card kc-red"><span class="kpi-label">Faltas este mês</span><strong data-count="{{ mes.falta }}">0</strong><i class="fa-solid fa-user-slash kpi-icon"></i></div>
+</div>
+
+<div class="grid two-col">
+  <div class="card"><header><h3><i class="fa-solid fa-circle-check"></i> O meu dia</h3></header>
+    {% if hoje_pres %}<p>{{ estado_badge(hoje_pres.estado, hoje_pres.atraso_minutos) }}</p>
+      <p class="muted">Entrada: <strong>{{ hoje_pres.hora_entrada or '—' }}</strong> · Saída: <strong>{{ hoje_pres.hora_saida or '—' }}</strong></p>
+    {% elif hor_hoje %}<p class="muted">Ainda sem registo hoje. Entrada prevista às <strong>{{ hor_hoje.hora_entrada }}</strong>; a saída é às <strong>{{ hor_hoje.hora_saida }}</strong>.</p>
+    {% else %}<p class="muted">Hoje não tem aulas.</p>{% endif %}
+    {% if proximo and data_prox != hoje %}
+    <p class="muted small" style="margin-top:14px"><i class="fa-regular fa-calendar"></i> Próximo dia de aulas: <strong>{{ dias[data_prox.weekday()] }} {{ data_prox.strftime('%d/%m') }}</strong>, entrada às {{ proximo.hora_entrada }}.</p>{% endif %}
+  </div>
+  <div class="card"><header><h3><i class="fa-solid fa-bell"></i> Avisos</h3><a class="btn ghost small" href="{{ url_for('aluno.notificacoes') }}">Ver todos</a></header>
+    <ul class="notif-list">{% for n in notifs %}<li class="notif notif-{{ n.tipo }}"><strong>{{ n.titulo }}</strong><p>{{ n.mensagem }}</p><small class="muted">{{ n.created_at }}</small></li>
+    {% else %}<li class="muted center" style="padding:14px">Sem avisos.</li>{% endfor %}</ul></div>
+</div>
+{% endblock %}

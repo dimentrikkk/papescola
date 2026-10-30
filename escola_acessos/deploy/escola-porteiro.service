@@ -1,0 +1,21 @@
+# sudo cp deploy/escola-porteiro.service /etc/systemd/system/ && sudo systemctl enable --now escola-porteiro
+# Ver o que se passa:  journalctl -u escola-porteiro -f
+[Unit]
+Description=Escola Segura - porteiro (camara + hardware)
+After=network.target escola-web.service
+
+[Service]
+User=pi
+SupplementaryGroups=gpio i2c video
+WorkingDirectory=/home/pi/escola_acessos
+EnvironmentFile=/home/pi/escola_acessos/.env
+Environment=HARDWARE_MODO=real
+ExecStart=/home/pi/escola_acessos/.venv/bin/python -m hardware.porteiro --real
+Restart=always
+RestartSec=3
+# Ao parar, o porteiro tranca a porta e liberta os GPIO (SIGTERM)
+KillSignal=SIGTERM
+TimeoutStopSec=10
+
+[Install]
+WantedBy=multi-user.target

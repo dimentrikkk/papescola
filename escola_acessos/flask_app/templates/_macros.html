@@ -1,0 +1,18 @@
+{% macro estado_badge(estado, atraso=0) -%}
+  {%- if estado == 'presente' -%}<span class="badge in"><i class="fa-solid fa-check"></i> Presente</span>
+  {%- elif estado == 'atraso' -%}<span class="badge warn"><i class="fa-solid fa-clock"></i> Atraso{% if atraso %} {{ atraso }} min{% endif %}</span>
+  {%- elif estado == 'falta' -%}<span class="badge out"><i class="fa-solid fa-user-slash"></i> Falta</span>
+  {%- elif estado == 'falta_justificada' -%}<span class="badge info"><i class="fa-solid fa-file-circle-check"></i> Falta justificada</span>
+  {%- else -%}<span class="badge muted"><i class="fa-regular fa-hourglass-half"></i> A aguardar</span>{%- endif -%}
+{%- endmacro %}
+
+{% macro progresso(pct, nivel='') -%}
+  <div class="progress {{ nivel }}"><span style="width: {{ [pct, 100] | min }}%"></span></div>
+{%- endmacro %}
+
+{% macro pessoa(nome, foto=None) -%}
+  <div class="pessoa">
+    {% if foto %}<img class="row-avatar" src="{{ url_for('media.ficheiro', filename=foto) }}" alt="">{% else %}<div class="presence-av">{{ nome[:1] | upper }}</div>{% endif %}
+    <span>{{ caller() if caller else nome }}</span>
+  </div>
+{%- endmacro %}

@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}Notificações{% endblock %}
+{% block page_title %}Notificações{% endblock %}
+{% block content %}
+<div class="card"><ul class="notif-list">
+  {% for n in rows %}<li class="notif notif-{{ n.tipo }}"><strong>{{ n.titulo }}</strong><p>{{ n.mensagem }}</p><small class="muted">{{ n.created_at }}</small></li>
+  {% else %}<li class="muted center" style="padding:24px">Sem notificações.</li>{% endfor %}
+</ul></div>
+{% endblock %}

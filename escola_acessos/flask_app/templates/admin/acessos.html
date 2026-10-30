@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Entradas e saídas{% endblock %}
+{% block page_title %}Entradas e saídas{% endblock %}
+{% block page_subtitle %}Registos da porta da escola{% endblock %}
+{% block content %}
+<form method="get" class="filters card" style="display:flex;gap:10px;flex-wrap:wrap">
+  <input type="date" name="data" value="{{ data }}" onchange="this.form.submit()">
+  <select name="turma_id" onchange="this.form.submit()"><option value="">Todas as turmas</option>
+    {% for t in turmas %}<option value="{{ t.id }}" {{ 'selected' if turma_id == t.id }}>{{ t.nome }}</option>{% endfor %}</select>
+</form>
+<div class="card"><div class="table-wrap"><table class="data">
+  <thead><tr><th>Hora</th><th>Aluno</th><th>Nº</th><th>Turma</th><th>Tipo</th><th>Origem</th></tr></thead><tbody>
+  {% for r in rows %}
+  <tr><td>{{ r.timestamp[11:] }}</td><td>{{ r.nome_completo }}</td><td>{{ r.numero_processo }}</td><td>{{ r.turma or '—' }}</td>
+    <td>{% if r.tipo == 'entrada' %}<span class="badge in">Entrada</span>{% else %}<span class="badge out">Saída</span>{% endif %}</td>
+    <td class="muted">{{ r.origem }}</td></tr>
+  {% else %}<tr><td colspan="6" class="muted center" style="padding:24px">Sem registos neste dia.</td></tr>{% endfor %}
+</tbody></table></div></div>
+{% endblock %}

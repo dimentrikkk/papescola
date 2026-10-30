@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Justificações{% endblock %}
+{% block page_title %}Justificação de faltas{% endblock %}
+{% block content %}
+<form method="post" class="card form grid two-col">
+  {{ csrf_field() }}
+  <label>De <input type="date" name="data_inicio" required></label>
+  <label>Até <input type="date" name="data_fim"></label>
+  <label class="full">Motivo <textarea name="motivo" rows="3" maxlength="400" required placeholder="Ex.: consulta médica (anexar declaração na secretaria)"></textarea></label>
+  <div class="full actions-row"><button class="btn primary"><i class="fa-solid fa-paper-plane"></i> Enviar pedido</button></div>
+</form>
+<div class="card"><table class="data"><thead><tr><th>Período</th><th>Motivo</th><th>Estado</th><th>Resposta</th></tr></thead><tbody>
+  {% for j in rows %}<tr><td>{{ j.data_inicio }}{% if j.data_fim != j.data_inicio %} → {{ j.data_fim }}{% endif %}</td><td>{{ j.motivo }}</td>
+    <td>{% if j.estado == 'pendente' %}<span class="badge warn">Pendente</span>{% elif j.estado == 'aprovado' %}<span class="badge in">Aprovado</span>{% else %}<span class="badge out">Rejeitado</span>{% endif %}</td>
+    <td class="muted">{{ j.resposta or '' }}</td></tr>
+  {% else %}<tr><td colspan="4" class="muted center" style="padding:20px">Sem pedidos.</td></tr>{% endfor %}
+</tbody></table></div>
+{% endblock %}

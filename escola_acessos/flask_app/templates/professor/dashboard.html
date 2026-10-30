@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}As minhas turmas{% endblock %}
+{% block page_title %}Olá, {{ current_user_name.split(' ')[0] }}{% endblock %}
+{% block page_subtitle %}{{ dias[hoje.weekday()] }}, {{ hoje.strftime('%d/%m/%Y') }} · assiduidade das suas turmas{% endblock %}
+{% block content %}
+{% for c in cartoes %}
+<div class="card">
+  <header><h3><i class="fa-solid fa-people-group"></i> {{ c.turma.nome }} <span class="muted small" style="font-weight:500">· {{ c.turma.curso or 'sem curso' }} · {{ c.turma.n_alunos }} alunos</span></h3>
+    <a class="btn primary small" href="{{ url_for('professor.turma', turma_id=c.turma.id) }}"><i class="fa-solid fa-list-check"></i> Abrir turma</a></header>
+  {% if c.hor %}<p class="muted small"><i class="fa-regular fa-clock"></i> Hoje: entrada às <strong>{{ c.hor.hora_entrada }}</strong> · saída às <strong>{{ c.hor.hora_saida }}</strong></p>
+  {% else %}<p class="muted small"><i class="fa-regular fa-calendar-xmark"></i> Hoje esta turma não tem aulas.</p>{% endif %}
+  <div class="estado-row">
+    <div class="estado-pill ep-presente"><strong data-count="{{ c.cont.presente }}">0</strong><span>Presentes</span></div>
+    <div class="estado-pill ep-atraso"><strong data-count="{{ c.cont.atraso }}">0</strong><span>Atrasos</span></div>
+    <div class="estado-pill ep-falta"><strong data-count="{{ c.cont.falta }}">0</strong><span>Faltas</span></div>
+    <div class="estado-pill ep-falta_justificada"><strong data-count="{{ c.cont.falta_justificada }}">0</strong><span>Justificadas</span></div>
+    <div class="estado-pill ep-pendente"><strong data-count="{{ c.cont.pendente }}">0</strong><span>A aguardar</span></div>
+  </div>
+</div>
+{% else %}
+<div class="card"><p class="center muted" style="padding:28px"><i class="fa-solid fa-circle-info"></i> Ainda não é diretor de nenhuma turma. Peça à administração para o associar a uma turma.</p></div>
+{% endfor %}
+<div class="card"><header><h3><i class="fa-solid fa-bell"></i> Avisos recentes</h3><a class="btn ghost small" href="{{ url_for('professor.notificacoes') }}">Ver todos</a></header>
+  <ul class="notif-list">{% for n in notifs %}<li class="notif notif-{{ n.tipo }}"><strong>{{ n.titulo }}</strong><p>{{ n.mensagem }}</p><small class="muted">{{ n.created_at }}</small></li>
+  {% else %}<li class="muted center" style="padding:14px">Sem avisos.</li>{% endfor %}</ul></div>
+{% endblock %}

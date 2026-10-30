@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Justificações{% endblock %}
+{% block page_title %}Justificações de faltas{% endblock %}
+{% block content %}
+<div class="card"><div class="table-wrap"><table class="data">
+  <thead><tr><th>Aluno</th><th>Período</th><th>Motivo</th><th>Estado</th><th>Decisão</th></tr></thead><tbody>
+  {% for j in rows %}
+  <tr><td>{{ j.nome_completo }}<br><small class="muted">{{ j.turma or '' }}</small></td>
+    <td>{{ j.data_inicio }}{% if j.data_fim != j.data_inicio %} → {{ j.data_fim }}{% endif %}</td><td>{{ j.motivo }}</td>
+    <td>{% if j.estado == 'pendente' %}<span class="badge warn">Pendente</span>{% elif j.estado == 'aprovado' %}<span class="badge in">Aprovado</span>{% else %}<span class="badge out">Rejeitado</span>{% endif %}</td>
+    <td>{% if j.estado == 'pendente' %}
+      <form method="post" style="display:flex;gap:6px;flex-wrap:wrap">{{ csrf_field() }}<input type="hidden" name="id" value="{{ j.id }}">
+        <input name="resposta" placeholder="Comentário (opcional)" class="compact" maxlength="300">
+        <button name="decisao" value="aprovado" class="btn primary small"><i class="fa-solid fa-check"></i></button>
+        <button name="decisao" value="rejeitado" class="btn ghost danger small"><i class="fa-solid fa-xmark"></i></button></form>
+      {% else %}<span class="muted small">{{ j.resposta or '' }}</span>{% endif %}</td></tr>
+  {% else %}<tr><td colspan="5" class="muted center" style="padding:24px">Sem pedidos.</td></tr>{% endfor %}
+</tbody></table></div></div>
+{% endblock %}

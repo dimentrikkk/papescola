@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Eventos da porta{% endblock %}
+{% block page_title %}Eventos da porta{% endblock %}
+{% block page_subtitle %}Auditoria: reconhecimentos, rostos desconhecidos e uso da chave de emergência{% endblock %}
+{% block content %}
+<div class="card"><div class="table-wrap"><table class="data compact">
+  <thead><tr><th>Quando</th><th>Evento</th><th>Aluno</th><th>Detalhe</th></tr></thead><tbody>
+  {% for e in rows %}
+  <tr><td>{{ e.timestamp }}</td>
+    <td>{% if e.tipo in ('nao_reconhecido','ambiguo') %}<span class="badge out">{{ e.tipo.replace('_',' ') }}</span>
+        {% elif e.tipo.startswith('chave') %}<span class="badge warn">{{ e.tipo.replace('_',' ') }}</span>
+        {% else %}<span class="badge in">{{ e.tipo }}</span>{% endif %}</td>
+    <td>{{ e.nome_completo or '—' }}</td><td class="muted">{{ e.detalhe or '' }}</td></tr>
+  {% else %}<tr><td colspan="4" class="muted center" style="padding:24px">Sem eventos.</td></tr>{% endfor %}
+</tbody></table></div></div>
+<p class="muted small">Os eventos são apagados automaticamente ao fim de {{ config.RETENCAO_EVENTOS_DIAS }} dias (<code>scripts/limpar_dados.py</code>).</p>
+{% endblock %}

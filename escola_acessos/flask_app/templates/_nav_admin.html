@@ -1,0 +1,18 @@
+{% set ep = request.endpoint or '' %}
+{% macro item(endpoint, icon, label, match=None) %}
+<a href="{{ url_for(endpoint) }}" class="{{ 'active' if (match or endpoint) in ep }}"><i class="fa-solid {{ icon }}"></i><span class="nav-label">{{ label }}</span></a>
+{% endmacro %}
+{{ item('admin.dashboard', 'fa-gauge-high', 'Dashboard') }}
+{{ item('admin.alunos_list', 'fa-user-graduate', 'Alunos', 'alunos') }}
+{{ item('admin.turmas', 'fa-people-group', 'Turmas e cursos') }}
+{{ item('admin.horarios', 'fa-clock', 'Horários de entrada/saída') }}
+{{ item('admin.professores', 'fa-chalkboard-user', 'Professores') }}
+<div class="nav-sep"></div>
+{{ item('admin.acessos', 'fa-door-open', 'Entradas e saídas') }}
+{{ item('admin.presencas', 'fa-clipboard-user', 'Presenças e faltas') }}
+{{ item('admin.justificacoes', 'fa-file-circle-check', 'Justificações') }}
+{{ item('admin.estatisticas', 'fa-chart-pie', 'Estatísticas') }}
+<div class="nav-sep"></div>
+{{ item('admin.comunicacoes', 'fa-envelope', 'Emails aos EE') }}
+{{ item('admin.eventos', 'fa-shield-halved', 'Eventos da porta') }}
+{% if config.KIOSK_WEB_ENABLED %}<a href="{{ url_for('kiosk.index') }}" target="_blank"><i class="fa-solid fa-display"></i><span class="nav-label">Kiosk (ensaio)</span></a>{% endif %}

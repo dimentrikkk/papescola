@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Horário{% endblock %}
+{% block page_title %}Horário de entrada e saída{% endblock %}
+{% block page_subtitle %}Turma {{ al.turma or '—' }} · registe a entrada à chegada e a saída quando sair da escola{% endblock %}
+{% block content %}
+<div class="card">
+  <div class="horas-grid">
+    {% for d in range(6) %}{% set h = hor.get(d) %}
+    {% if d < 5 or h %}
+    <div class="dia-card {{ 'hoje' if d == hoje }} {{ '' if h else 'livre' }}">
+      <h4>{{ dias[d] }}{% if d == hoje %}<span class="badge info">Hoje</span>{% endif %}</h4>
+      {% if h %}<div class="hora"><small>Entrada</small>{{ h.hora_entrada }}</div><div class="hora" style="margin-top:6px"><small>Saída</small>{{ h.hora_saida }}</div>
+      {% else %}<span class="muted">Sem aulas</span>{% endif %}
+    </div>{% endif %}
+    {% endfor %}
+  </div>
+  <p class="muted small" style="margin-top:16px"><i class="fa-solid fa-circle-info"></i> O horário das disciplinas e salas consulta-se na aplicação habitual da escola. Aqui só aparecem as horas de entrada e de saída.</p>
+</div>
+{% endblock %}

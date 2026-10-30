@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+{% block page_subtitle %}Hoje · {{ escola_nome }}{% endblock %}
+{% block content %}
+{% if k.sem_horario %}<div class="notice"><i class="fa-solid fa-clock"></i><div>{{ k.sem_horario }} turma(s) sem horário de entrada/saída — sem ele não é possível calcular atrasos nem faltas. <a href="{{ url_for('admin.horarios') }}">Definir horários</a></div></div>{% endif %}
+{% if k.sem_email_ee %}<div class="notice info"><i class="fa-solid fa-envelope"></i><div>{{ k.sem_email_ee }} aluno(s) sem email do encarregado de educação: não receberão avisos. <a href="{{ url_for('admin.alunos_list') }}">Ver alunos</a></div></div>{% endif %}
+{% if k.emails_erro %}<div class="notice error"><i class="fa-solid fa-triangle-exclamation"></i><div>{{ k.emails_erro }} email(s) falharam o envio. <a href="{{ url_for('admin.comunicacoes') }}">Ver emails</a></div></div>{% endif %}
+
+<div class="grid kpi">
+  <div class="kpi-card kc-blue"><span class="kpi-label">Alunos ativos</span><strong data-count="{{ k.alunos_ativos }}">0</strong><i class="fa-solid fa-user-graduate kpi-icon"></i></div>
+  <div class="kpi-card kc-green"><span class="kpi-label">Dentro da escola agora</span><strong>{% if k.na_escola %}<span class="dot-live"></span>{% endif %}<span data-count="{{ k.na_escola }}">0</span></strong><i class="fa-solid fa-school kpi-icon"></i></div>
+  <div class="kpi-card kc-amber"><span class="kpi-label">Atrasos hoje</span><strong data-count="{{ k.atrasos_hoje }}">0</strong><i class="fa-solid fa-clock kpi-icon"></i></div>
+  <div class="kpi-card kc-red"><span class="kpi-label">Faltas hoje</span><strong data-count="{{ k.faltas_hoje }}">0</strong><i class="fa-solid fa-user-slash kpi-icon"></i></div>
+  <div class="kpi-card kc-navy"><span class="kpi-label">Justificações pendentes</span><strong data-count="{{ k.justificacoes_pendentes }}">0</strong><i class="fa-solid fa-file-circle-check kpi-icon"></i></div>
+</div>
+
+<div class="grid two-col">
+  <div class="card"><header><h3><i class="fa-solid fa-chart-column"></i> Alunos que entraram — últimos 7 dias</h3></header><canvas id="c1" height="150"></canvas></div>
+  <div class="card"><header><h3><i class="fa-solid fa-chart-pie"></i> Estado de hoje</h3></header>
+    {% if estados.values() | sum %}<div style="max-width:300px;margin:0 auto"><canvas id="c2"></canvas></div>
+    {% else %}<p class="muted center" style="padding:36px">Ainda sem presenças calculadas hoje.</p>{% endif %}</div>
+</div>
+
+<div class="grid two-col">
+  <div class="card"><header><h3><i class="fa-solid fa-people-group"></i> Atrasos e faltas por turma — 30 dias</h3></header>
+    {% if ocorrencias %}<canvas id="c3" height="150"></canvas>{% else %}<p class="muted center" style="padding:36px">Sem dados.</p>{% endif %}</div>
+  <div class="card"><header><h3><i class="fa-solid fa-door-open"></i> Últimas passagens na porta</h3><a href="{{ url_for('admin.acessos') }}" class="btn ghost small">Ver tudo</a></header>
+    <div class="table-wrap"><table class="data compact"><tbody>
+      {% for r in ultimos %}<tr><td>{{ r.timestamp[11:16] }}</td><td>{{ r.nome_completo }}<br><small class="muted">{{ r.turma or '—' }}</small></td>
+        <td>{% if r.tipo == 'entrada' %}<span class="badge in">Entrada</span>{% else %}<span class="badge out">Saída</span>{% endif %}</td></tr>
+      {% else %}<tr><td class="muted center" style="padding:24px">Sem registos ainda.</td></tr>{% endfor %}
+    </tbody></table></div></div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+Chart.defaults.font.family = 'Inter, "Segoe UI", system-ui, sans-serif'; Chart.defaults.color = '#6a86a1';
+const ent = {{ entradas | tojson }};
+new Chart(document.getElementById('c1'), {type:'bar', data:{labels: ent.map(e => e.data.slice(8) + '/' + e.data.slice(5,7)), datasets:[{data: ent.map(e => e.alunos), backgroundColor:'#008ad8', hoverBackgroundColor:'#3c9fe0', borderRadius:8}]},
+  options:{plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true, ticks:{precision:0}, grid:{color:'#edf3f9'}}, x:{grid:{display:false}}}}});
+{% if estados.values() | sum %}const es = {{ estados | tojson }};
+new Chart(document.getElementById('c2'), {type:'doughnut', data:{labels:['Presentes','Atrasos','Faltas','Justificadas'], datasets:[{data:[es.presente, es.atraso, es.falta, es.falta_justificada], backgroundColor:['#12a150','#f5a524','#dc2f48','#3c9fe0'], borderWidth:3, borderColor:'#fff'}]},
+  options:{cutout:'66%', plugins:{legend:{position:'bottom'}}}});{% endif %}
+{% if ocorrencias %}const oc = {{ ocorrencias | tojson }};
+new Chart(document.getElementById('c3'), {type:'bar', data:{labels: oc.map(o => o.turma), datasets:[{label:'Atrasos', data: oc.map(o => o.atrasos), backgroundColor:'#f5a524', borderRadius:6},{label:'Faltas', data: oc.map(o => o.faltas), backgroundColor:'#dc2f48', borderRadius:6}]},
+  options:{plugins:{legend:{position:'bottom'}}, scales:{y:{beginAtZero:true, ticks:{precision:0}, grid:{color:'#edf3f9'}}, x:{grid:{display:false}}}}});{% endif %}
+</script>
+{% endblock %}

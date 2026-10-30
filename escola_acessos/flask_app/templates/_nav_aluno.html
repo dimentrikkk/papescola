@@ -1,0 +1,7 @@
+{% set ep = request.endpoint or '' %}
+<a href="{{ url_for('aluno.dashboard') }}" class="{{ 'active' if ep == 'aluno.dashboard' }}"><i class="fa-solid fa-house"></i><span class="nav-label">Início</span></a>
+<a href="{{ url_for('aluno.assiduidade') }}" class="{{ 'active' if ep == 'aluno.assiduidade' }}"><i class="fa-solid fa-calendar-check"></i><span class="nav-label">Assiduidade</span></a>
+<a href="{{ url_for('aluno.horario') }}" class="{{ 'active' if ep == 'aluno.horario' }}"><i class="fa-solid fa-clock"></i><span class="nav-label">Horário de entrada/saída</span></a>
+<a href="{{ url_for('aluno.acessos') }}" class="{{ 'active' if ep == 'aluno.acessos' }}"><i class="fa-solid fa-door-open"></i><span class="nav-label">Entradas e saídas</span></a>
+<a href="{{ url_for('aluno.justificacoes') }}" class="{{ 'active' if ep == 'aluno.justificacoes' }}"><i class="fa-solid fa-file-circle-check"></i><span class="nav-label">Justificações</span></a>
+<a href="{{ url_for('aluno.privacidade') }}" class="{{ 'active' if ep == 'aluno.privacidade' }}"><i class="fa-solid fa-user-shield"></i><span class="nav-label">Privacidade</span></a>

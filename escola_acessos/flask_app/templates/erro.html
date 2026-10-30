@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% block title %}Erro {{ codigo }}{% endblock %}
+{% block page_title %}Ups… erro {{ codigo }}{% endblock %}
+{% block nav %}{% if current_user_type %}{{ super() }}{% endif %}{% endblock %}
+{% block content %}
+<div class="card" style="max-width:560px"><p>{{ mensagem }}</p>
+  <a class="btn primary" href="{{ url_for('index') }}"><i class="fa-solid fa-house"></i> Voltar ao início</a></div>
+{% endblock %}

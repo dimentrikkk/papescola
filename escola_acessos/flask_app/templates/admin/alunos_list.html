@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Alunos{% endblock %}
+{% block page_title %}Alunos{% endblock %}
+{% block page_subtitle %}Base de dados de alunos, consentimento e rostos{% endblock %}
+{% block page_actions %}<a class="btn primary" href="{{ url_for('admin.alunos_new') }}"><i class="fa-solid fa-plus"></i> Novo aluno</a>{% endblock %}
+{% block content %}
+<form method="get" class="filters card" style="display:flex;gap:10px;flex-wrap:wrap">
+  <input type="search" name="q" value="{{ q }}" placeholder="Nome, nº de processo ou email…" style="flex:1;min-width:200px">
+  <select name="turma_id" onchange="this.form.submit()">
+    <option value="">Todas as turmas</option>
+    {% for t in turmas %}<option value="{{ t.id }}" {{ 'selected' if turma_id == t.id }}>{{ t.nome }}</option>{% endfor %}
+  </select>
+  <button class="btn ghost"><i class="fa-solid fa-magnifying-glass"></i> Pesquisar</button>
+</form>
+<div class="card"><div class="table-wrap">
+<table class="data">
+  <thead><tr><th>Aluno</th><th>Nº</th><th>Turma</th><th>Biometria</th><th>Estado</th><th></th></tr></thead>
+  <tbody>
+  {% for a in rows %}
+  <tr>
+    <td><div style="display:flex;align-items:center;gap:9px">
+      {% if a.foto_perfil %}<img class="row-avatar" src="{{ url_for('media.ficheiro', filename=a.foto_perfil) }}" alt="">{% else %}<div class="presence-av" style="width:30px;height:30px;font-size:.75rem">{{ a.nome_completo[:1] | upper }}</div>{% endif %}
+      <a href="{{ url_for('admin.alunos_edit', aid=a.id) }}">{{ a.nome_completo }}</a></div></td>
+    <td>{{ a.numero_processo }}</td>
+    <td>{{ a.turma or '—' }}</td>
+    <td>
+      {% if not a.consentimento_biometrico %}<span class="badge muted">Sem consentimento</span>
+      {% elif a.amostras >= 3 %}<span class="badge in">{{ a.amostras }} amostras</span>
+      {% else %}<span class="badge warn">{{ a.amostras }} amostras</span>{% endif %}
+    </td>
+    <td>{% if a.ativo %}<span class="badge in">Ativo</span>{% else %}<span class="badge out">Inativo</span>{% endif %}</td>
+    <td><div class="table-actions">
+      <a class="btn ghost small" href="{{ url_for('admin.alunos_edit', aid=a.id) }}" title="Editar"><i class="fa-solid fa-pen"></i></a>
+      {% if a.consentimento_biometrico %}<a class="btn ghost small" href="{{ url_for('admin.alunos_rosto', aid=a.id) }}" title="Registar rosto"><i class="fa-solid fa-camera"></i></a>{% endif %}
+    </div></td>
+  </tr>
+  {% else %}<tr><td colspan="6" class="muted center" style="padding:24px">Sem alunos.</td></tr>{% endfor %}
+  </tbody>
+</table></div></div>
+{% endblock %}

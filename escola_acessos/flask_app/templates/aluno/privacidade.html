@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Privacidade{% endblock %}
+{% block page_title %}Privacidade e dados biométricos{% endblock %}
+{% block content %}
+<div class="card">
+  <p><strong>Reconhecimento facial:</strong>
+    {% if al.consentimento_biometrico %}<span class="badge in">Ativo</span> desde {{ al.consentimento_data }}{% else %}<span class="badge muted">Desativado</span> — o registo de entrada é feito manualmente na portaria.{% endif %}</p>
+  <ul>
+    <li>A escola guarda apenas um <strong>vetor numérico</strong> do rosto (não a fotografia) para registar a entrada e a saída.</li>
+    <li>O consentimento é <strong>voluntário</strong> e pode ser retirado a qualquer momento na secretaria; os dados biométricos são então apagados.</li>
+    <li>As fotografias das entradas <strong>não são guardadas</strong>.</li>
+    <li>Quem não der consentimento não é prejudicado: tem alternativa de registo sem biometria.</li>
+  </ul>
+</div>
+{% endblock %}

@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Novo aluno' if novo else 'Editar aluno' }}{% endblock %}
+{% block page_title %}{{ 'Novo aluno' if novo else aluno.nome_completo }}{% endblock %}
+{% block page_subtitle %}{{ 'Preencha os dados do aluno' if novo else 'Nº de processo ' ~ aluno.numero_processo }}{% endblock %}
+{% block page_actions %}<a class="btn ghost" href="{{ url_for('admin.alunos_list') }}"><i class="fa-solid fa-arrow-left"></i> Voltar</a>{% endblock %}
+{% block content %}
+<form method="post" class="card form grid two-col">
+  {{ csrf_field() }}
+  <label>Nº de processo * <input name="numero_processo" value="{{ aluno.numero_processo or '' }}" required maxlength="30"></label>
+  <label>Nome completo * <input name="nome_completo" value="{{ aluno.nome_completo or '' }}" required maxlength="120"></label>
+  <label>Email do aluno * <input type="email" name="email" value="{{ aluno.email or '' }}" required></label>
+  <label>Data de nascimento <input type="date" name="data_nascimento" value="{{ aluno.data_nascimento or '' }}"></label>
+  <label>Telefone <input name="telefone" value="{{ aluno.telefone or '' }}" maxlength="30"></label>
+  <label>Turma
+    <select name="turma_id"><option value="">— sem turma —</option>
+      {% for t in turmas %}<option value="{{ t.id }}" {{ 'selected' if aluno.turma_id == t.id }}>{{ t.nome }}</option>{% endfor %}
+    </select></label>
+  <label>Encarregado de educação <input name="encarregado_nome" value="{{ aluno.encarregado_nome or '' }}"></label>
+  <label>Email do encarregado <input type="email" name="encarregado_email" value="{{ aluno.encarregado_email or '' }}"></label>
+  <label>Telefone do encarregado <input name="encarregado_telefone" value="{{ aluno.encarregado_telefone or '' }}"></label>
+  {% if novo %}
+  <label>Password inicial <input name="password" placeholder="(em branco = gerar automaticamente)" minlength="8"></label>
+  {% else %}
+  <label class="check"><input type="checkbox" name="ativo" {{ 'checked' if aluno.ativo }}> Aluno ativo</label>
+  {% endif %}
+  <div class="full actions-row"><button class="btn primary"><i class="fa-solid fa-floppy-disk"></i> Guardar</button></div>
+</form>
+
+{% if not novo %}
+<div class="grid two-col">
+  <div class="card">
+    <header><h3><i class="fa-solid fa-user-shield"></i> Consentimento biométrico (RGPD)</h3></header>
+    {% if aluno.consentimento_biometrico %}
+      <p><span class="badge in">Consentimento dado</span> <span class="muted small">em {{ aluno.consentimento_data }}</span></p>
+      <p class="muted small">Amostras faciais guardadas: <strong>{{ amostras }}</strong>. Só são guardados vetores numéricos, nunca fotografias.</p>
+      <div class="table-actions">
+        <a class="btn primary" href="{{ url_for('admin.alunos_rosto', aid=aluno.id) }}"><i class="fa-solid fa-camera"></i> Registar rosto</a>
+        <form method="post" action="{{ url_for('admin.alunos_consentimento', aid=aluno.id) }}" class="inline-form" onsubmit="return confirm('Retirar o consentimento apaga todos os dados biométricos deste aluno. Continuar?')">
+          {{ csrf_field() }}<input type="hidden" name="acao" value="retirar">
+          <button class="btn ghost danger"><i class="fa-solid fa-ban"></i> Retirar e apagar dados</button></form>
+      </div>
+    {% else %}
+      <p><span class="badge muted">Sem consentimento</span></p>
+      <p class="muted small">Sem consentimento do encarregado de educação (menores) ou do próprio (maiores), o aluno <strong>não é reconhecido pela porta</strong>. Use o registo manual abaixo.</p>
+      <form method="post" action="{{ url_for('admin.alunos_consentimento', aid=aluno.id) }}" onsubmit="return confirm('Confirma que existe consentimento escrito arquivado?')">
+        {{ csrf_field() }}<input type="hidden" name="acao" value="dar">
+        <button class="btn primary"><i class="fa-solid fa-signature"></i> Registar consentimento recebido</button></form>
+    {% endif %}
+  </div>
+
+  <div class="card">
+    <header><h3><i class="fa-solid fa-door-open"></i> Registo manual de acesso</h3></header>
+    <p class="muted small">Para alunos sem biometria, esquecimentos ou avaria da porta.</p>
+    <div class="table-actions">
+      {% for t, lbl in (('entrada','Entrada'),('saida','Saída')) %}
+      <form method="post" action="{{ url_for('admin.alunos_acesso_manual', aid=aluno.id) }}" class="inline-form">{{ csrf_field() }}<input type="hidden" name="tipo" value="{{ t }}">
+        <button class="btn ghost"><i class="fa-solid fa-arrow-right-{{ 'to' if t == 'entrada' else 'from' }}-bracket"></i> {{ lbl }} agora</button></form>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="card">
+    <header><h3><i class="fa-solid fa-image"></i> Fotografia de perfil</h3></header>
+    {% if aluno.foto_perfil %}<img class="big-avatar" style="max-width:120px;border-radius:12px" src="{{ url_for('media.ficheiro', filename=aluno.foto_perfil) }}" alt="">{% endif %}
+    <form method="post" action="{{ url_for('admin.alunos_foto', aid=aluno.id) }}" enctype="multipart/form-data" class="form">
+      {{ csrf_field() }}<input type="file" name="foto" accept="image/*" required>
+      <button class="btn ghost"><i class="fa-solid fa-upload"></i> Carregar</button></form>
+  </div>
+
+  <div class="card">
+    <header><h3><i class="fa-solid fa-triangle-exclamation"></i> Conta</h3></header>
+    <div class="table-actions">
+      <form method="post" action="{{ url_for('admin.alunos_reset_password', aid=aluno.id) }}" class="inline-form" onsubmit="return confirm('Gerar nova password temporária?')">{{ csrf_field() }}
+        <button class="btn ghost"><i class="fa-solid fa-key"></i> Repor password</button></form>
+      <form method="post" action="{{ url_for('admin.alunos_delete', aid=aluno.id) }}" class="inline-form" onsubmit="return confirm('Apagar o aluno e TODOS os seus dados (acessos, faltas, biometria)? Não pode ser desfeito.')">{{ csrf_field() }}
+        <button class="btn ghost danger"><i class="fa-solid fa-trash"></i> Apagar aluno</button></form>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}
